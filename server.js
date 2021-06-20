@@ -1,8 +1,13 @@
 var express = require('express');
 const { v4: uuidv4 } = require('uuid');
 
+process.env.APP_ACCESS_SECRET = 'asdhjahsd77123';
+process.env.APP_REFRESH_SECRET = 'kajdjahfds';
+
 var app = express();
 var router = express.Router();
+
+const verifytoken = require('./src/middleware/verify-token');
 
 var path = require('path');
 var publicDir = path.join(__dirname,'public');
@@ -74,6 +79,11 @@ app.post('/login', async function(req, res) {
     }
 
 });
+
+
+app.get('/tokentest', verifytoken, function(req, res) {
+    res.send({"Output": "Token verified" });
+  });
 
 var port = process.env.PORT || 3000;
 app.listen(port);
