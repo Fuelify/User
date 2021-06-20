@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 process.env.APP_ACCESS_SECRET = 'asdhjahsd77123';
 process.env.APP_REFRESH_SECRET = 'kajdjahfds';
 
-var {setup} = require('./dependency-constructor');
+var {setup, container} = require('./dependency-constructor');
 setup();
 
 var app = express();
@@ -48,7 +48,7 @@ app.post('/login', async function(req, res) {
         if (validEmails.includes(userEmail)) { // evaluate to true if in list
             //const response = await user.loginUser(userEmail,userPassword);
             if (userPassword == '123') {
-                const tokens = TokenService.createRefreshAndAccessToken(userEmail);
+                const tokens = await TokenService.createRefreshAndAccessToken(userEmail);
                 response = {
                     statusCode: 200,
                     success: true,
