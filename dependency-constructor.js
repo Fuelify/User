@@ -16,7 +16,7 @@ function setup() {
   container.register({
     //usersRepository: asClass(UsersRepository),
     
-    tokenService: asClass(TokenService),
+    TokenService: asClass(TokenService),
   });
 }
 
