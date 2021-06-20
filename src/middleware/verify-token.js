@@ -1,4 +1,4 @@
-var {container} = require('../dependency-constructor');
+var {container} = require('../../dependency-constructor')
 
 module.exports = async (req, res, next) => {
     try {
