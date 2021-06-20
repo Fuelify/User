@@ -4,6 +4,9 @@ const { v4: uuidv4 } = require('uuid');
 process.env.APP_ACCESS_SECRET = 'asdhjahsd77123';
 process.env.APP_REFRESH_SECRET = 'kajdjahfds';
 
+var {setup} = require('./dependency-constructor');
+setup();
+
 var app = express();
 var router = express.Router();
 
