@@ -1,8 +1,16 @@
 var express = require('express');
 const { v4: uuidv4 } = require('uuid');
 
+process.env.APP_ACCESS_SECRET = 'asdhjahsd77123';
+process.env.APP_REFRESH_SECRET = 'kajdjahfds';
+
+var {setup, container} = require('./dependency-constructor');
+setup();
+
 var app = express();
 var router = express.Router();
+
+const verifytoken = require('./src/middleware/verify-token');
 
 var path = require('path');
 var publicDir = path.join(__dirname,'public');
@@ -27,6 +35,8 @@ app.post('/', function(req, res) {
 app.post('/login', async function(req, res) {
 
     try {
+      
+        const TokenService = container.resolve('TokenService');
         
         var validEmails = ['ethan@fuelify.com']
 
@@ -38,16 +48,17 @@ app.post('/login', async function(req, res) {
         if (validEmails.includes(userEmail)) { // evaluate to true if in list
             //const response = await user.loginUser(userEmail,userPassword);
             if (userPassword == '123') {
+                const tokens = await TokenService.createRefreshAndAccessToken(userEmail);
                 response = {
                     statusCode: 200,
                     success: true,
-                    token: String(uuidv4()),
+                    token: tokens.accessToken,
                     message: "User successfully logged in",
                     data: {
-                        access_token: String(uuidv4()),
+                        access_token: tokens.accessToken,
                         email: userEmail,
                         id: 1,
-                        refresh_token: String(uuidv4()),
+                        refresh_token: tokens.refreshToken,
                         type: 'user'
                     }
                 }
@@ -74,6 +85,11 @@ app.post('/login', async function(req, res) {
     }
 
 });
+
+
+app.get('/tokentest', verifytoken, function(req, res) {
+    res.send({"Output": "Token verified" });
+  });
 
 var port = process.env.PORT || 3000;
 app.listen(port);
