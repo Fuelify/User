@@ -33,7 +33,7 @@ app.post('/', function(req, res) {
 
 // Login user in system, return token
 app.post('/login', async function(req, res) {
-
+    console.log('Login request received')
     try {
       
         const TokenService = container.resolve('TokenService');
@@ -62,6 +62,7 @@ app.post('/login', async function(req, res) {
                         type: 'user'
                     }
                 }
+                console.log(response)
             } else {                
                 response = {
                     statusCode: 402,
@@ -86,10 +87,24 @@ app.post('/login', async function(req, res) {
 
 });
 
+// Fetch foods endpoint
+app.get('/foods/fetch', verifytoken, function(req, res) {
+    
+    // Access the provided 'page' and 'limt' query parameters
+    let limit = req.query.limit;
+
+    var data = {}
+
+    // Retrive another n
+    res.status(200).send({"Message": "Returning another "+limit.toString()+" food items.", "Data": data });
+});
+
+
+
 
 app.get('/tokentest', verifytoken, function(req, res) {
     res.send({"Output": "Token verified" });
-  });
+});
 
 var port = process.env.PORT || 3000;
 app.listen(port);
