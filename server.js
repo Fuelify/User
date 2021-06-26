@@ -93,10 +93,10 @@ app.get('/foods/fetch', verifytoken, function(req, res) {
     // Access the provided 'page' and 'limt' query parameters
     let limit = req.query.limit;
 
-    var data = {}
+    var foods = {}
 
     // Retrive another n
-    res.status(200).send({"Message": "Returning another "+limit.toString()+" food items.", "Data": data });
+    res.status(200).send({"message": "Returning another "+limit.toString()+" food items.", "foods": foods });
 });
 
 
