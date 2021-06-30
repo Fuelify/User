@@ -85,7 +85,6 @@ app.post('/user/login', async function(req, res) {
                         type: family
                     }
                 }
-                console.log(response)
             } else {                
                 response = {
                     statusCode: 401,
