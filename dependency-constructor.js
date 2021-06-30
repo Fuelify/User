@@ -6,6 +6,7 @@ const { createContainer, asClass, asValue } = require('awilix');
 
 // Services
 const TokenService = require('./src/services/token-service');
+const UserService = require('./src/services/user-service');
 
 // Models
 
@@ -17,6 +18,7 @@ function setup() {
     //usersRepository: asClass(UsersRepository),
     
     TokenService: asClass(TokenService),
+    UserService: asClass(UserService),
   });
 }
 
