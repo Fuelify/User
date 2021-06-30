@@ -159,7 +159,7 @@ app.post('/user/register', async function(req, res) {
                     email: userInputs.email,
                     id: userInputs.email,
                     refresh_token: tokens.refreshToken,
-                    type: userInputs.group,
+                    type: userInputs.family,
                 }
             }
 
