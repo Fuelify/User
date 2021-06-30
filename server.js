@@ -53,7 +53,7 @@ app.post('/user/login', async function(req, res) {
         const UserService = container.resolve('UserService');
         
         resp = await UserService.getUser(req.body)
-        console.log(resp)
+        
         // Check if the user was successfully fetched from database
         var response;
         if (resp.success) {
@@ -66,10 +66,12 @@ app.post('/user/login', async function(req, res) {
                 // Check if validation was true against the admin password
                 if (password == User.Passwords['ADMIN']) {
                     var family = 'ADMIN';
+                    var tokenEmail = email+'-ADMIN';
                 } else {
                     var family = 'USER';
+                    var tokenEmail = email;
                 };
-                const tokens = await TokenService.createRefreshAndAccessToken(email);
+                const tokens = await TokenService.createRefreshAndAccessToken(tokenEmail);
                 response = {
                     statusCode: 200,
                     success: true,
