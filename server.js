@@ -51,9 +51,9 @@ app.post('/user/login', async function(req, res) {
       
         const TokenService = container.resolve('TokenService');
         const UserService = container.resolve('UserService');
-
-        resp = await UserService.getUser(req.body)
         
+        resp = await UserService.getUser(req.body)
+        console.log(resp)
         // Check if the user was successfully fetched from database
         var response;
         if (resp.success) {

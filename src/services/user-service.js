@@ -47,17 +47,21 @@ class UserService {
         try {
             var params = {
                 TableName: DYNAMODB_USER_TABLE,
-                KeyConditionExpression: 'ID = :id and FAMILY = :family',
+                KeyConditionExpression: '#pk = :id and #sk = :family',
+                ExpressionAttributeNames:{
+                    '#pk': 'ID',
+                    '#sk': 'FAMILY',
+                },
                 ExpressionAttributeValues: {
                     ':id': User.email,
-                    ':family': User.group,
+                    ':family': User.family,
                 },
             };
 
             var userData = await dynamoDB.query(params).promise();
-
+            
             // Extract user data from returned query and identify if user was found in database
-            if (userData.Items) {
+            if (userData.Items && userData.Count > 0) {
                 return {
                     success: true,
                     statusCode: 200,
