@@ -32,23 +32,44 @@ app.post('/', function(req, res) {
 });
 
 // Login user in system, return token
-app.post('/login', async function(req, res) {
+app.post('/user/login', async function(req, res) {
     console.log('Login request received')
     try {
+        // NEW THE FOLLOWING TO BE IN REQUEST BODY
+        // - Email
+        // - Password
+        // - Group
+        // - Provider
+        /* VERIFY BELOW FIELDS ARE PRESENT
+        var userInputs = {
+            'email': req.body.email,
+            'password': req.body.password,
+            'group': req.body.group,
+            'provider': req.body.provider,
+        }
+        */
       
         const TokenService = container.resolve('TokenService');
+        const UserService = container.resolve('UserService');
+
+        resp = await UserService.getUser(req.body)
         
-        var validEmails = ['ethan@fuelify.com']
-
-        var userEmail = req.body.email
-        var userPassword = req.body.password
-
-        // Check if submitted email address matches an email in our allowed email list
-        var response
-        if (validEmails.includes(userEmail)) { // evaluate to true if in list
-            //const response = await user.loginUser(userEmail,userPassword);
-            if (userPassword == '123') {
-                const tokens = await TokenService.createRefreshAndAccessToken(userEmail);
+        // Check if the user was successfully fetched from database
+        var response;
+        if (resp.success) {
+            var User = resp.user;
+            var email = req.body.email;
+            var provider = req.body.provider;
+            var password = req.body.password;
+            // Validate passwords match either the users provider password or the admin provider password
+            if (password == User.Passwords[provider] || password == User.Passwords['ADMIN']) {
+                // Check if validation was true against the admin password
+                if (password == User.Passwords['ADMIN']) {
+                    var group = 'ADMIN';
+                } else {
+                    var group = 'USER';
+                };
+                const tokens = await TokenService.createRefreshAndAccessToken(email);
                 response = {
                     statusCode: 200,
                     success: true,
@@ -56,27 +77,23 @@ app.post('/login', async function(req, res) {
                     message: "User successfully logged in",
                     data: {
                         access_token: tokens.accessToken,
-                        email: userEmail,
-                        id: 1,
+                        email: email,
+                        id: email,
                         refresh_token: tokens.refreshToken,
-                        type: 'user'
+                        type: group
                     }
                 }
                 console.log(response)
             } else {                
                 response = {
-                    statusCode: 402,
+                    statusCode: 401,
                     success: false,
                     message: "Password does not match user email record",
                 }
             }
-        } else { // email not in list
-            response = {
-                statusCode: 401,
-                success: false,
-                message: "Nonauthorize user email address",
-                body: req
-            }
+
+        } else {
+            response = resp;
         }
 
         res.status(response.statusCode).send(response)
@@ -86,6 +103,72 @@ app.post('/login', async function(req, res) {
     }
 
 });
+
+// Register user in system, return token
+app.post('/user/register', async function(req, res) {
+    console.log('Register request received')
+
+    // INCOMING SHOULD CONTAIN THE FOLLOWING
+    //  - Email
+    //  - Group [USER, SUPPORT, DEVELOPER, ADMIN, NUTRITIONIST], THE APP WILL ALWAYS SEND BACK A USER GROUP
+    //  - Provider [FUELIFY, GOOGLE, APPLE, FACEBOOK, ADMIN]
+
+    try {
+
+        // TODO Check if user is already registered in system
+        
+        userInputs = req.body;
+
+        var User = {
+            ID: userInputs.email,
+            GROUP: userInputs.group,
+            Passwords: {},
+            DeviceTokens: {},
+            RefreshToken: "",
+            Salt: "",
+            Settings: {},
+            Plan: userInputs.plan ? userInputs.plan : "Free",
+            State: "Registered",
+        }
+
+        // Set provider password #TODO ENCRYPT PASSWORD
+        User.Passwords[userInputs.provider] = userInputs.password
+
+        // Create an admin password for user
+        if (userInputs.provider !== 'ADMIN'){
+            User.Passwords['ADMIN'] = 'AdminPassword2*' // TODO ENCRYPT PASSWORD 
+        }
+
+        // Generate user authorization token
+        const TokenService = container.resolve('TokenService');
+        const tokens = await TokenService.createRefreshAndAccessToken(userInputs.email);
+
+        var response = {
+            statusCode: 200,
+            success: true,
+            token: tokens.accessToken,
+            message: "User successfully registered in system",
+            data: {
+                access_token: tokens.accessToken,
+                email: userInputs.email,
+                id: userInputs.email,
+                refresh_token: tokens.refreshToken,
+                type: userInputs.group,
+            }
+        }
+
+        // Register user in database
+        const UserService = container.resolve('UserService');
+        resp = await UserService.registerUser(User);
+
+        res.status(response.statusCode).send(response)
+
+    } catch(err) {
+        res.status(500).send(err)
+    }
+
+});
+
 
 // Fetch foods endpoint
 app.get('/foods/fetch', verifytoken, function(req, res) {
