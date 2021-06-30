@@ -27,16 +27,21 @@ class UserService {
     async registerUser(User) {
             
         try {
-            params = {
+            var params = {
                 TableName: DYNAMODB_USER_TABLE,
                 Item: User
             };
             // Write plan data item to TrainingPlan table
-            var response = await dynamoDB.put(params).promise();
-            return response
+            await dynamoDB.put(params).promise();
+            
+            return {
+                success: true,
+            }
         } catch(err) {
             console.log(err)
-            return undefined
+            return {
+                success: false,
+            }
         };
 
     }

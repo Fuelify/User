@@ -139,30 +139,33 @@ app.post('/user/register', async function(req, res) {
             User.Passwords['ADMIN'] = 'AdminPassword2*' // TODO ENCRYPT PASSWORD 
         }
 
-        // Generate user authorization token
-        const TokenService = container.resolve('TokenService');
-        const tokens = await TokenService.createRefreshAndAccessToken(userInputs.email);
-
-        var response = {
-            statusCode: 200,
-            success: true,
-            token: tokens.accessToken,
-            message: "User successfully registered in system",
-            data: {
-                access_token: tokens.accessToken,
-                email: userInputs.email,
-                id: userInputs.email,
-                refresh_token: tokens.refreshToken,
-                type: userInputs.group,
-            }
-        }
-
         // Register user in database
         const UserService = container.resolve('UserService');
         resp = await UserService.registerUser(User);
 
-        res.status(response.statusCode).send(response)
+        if (resp.success) { 
+            // Generate user authorization token
+            const TokenService = container.resolve('TokenService');
+            const tokens = await TokenService.createRefreshAndAccessToken(userInputs.email);
 
+            var response = {
+                statusCode: 200,
+                success: true,
+                token: tokens.accessToken,
+                message: "User successfully registered in system",
+                data: {
+                    access_token: tokens.accessToken,
+                    email: userInputs.email,
+                    id: userInputs.email,
+                    refresh_token: tokens.refreshToken,
+                    type: userInputs.group,
+                }
+            }
+
+            res.status(response.statusCode).send(response)
+        } else {
+            res.status(500).send({statusCode: 500, message: 'Failed to properly register athlete in database'})
+        }
     } catch(err) {
         res.status(500).send(err)
     }
