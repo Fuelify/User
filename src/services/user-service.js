@@ -47,10 +47,10 @@ class UserService {
         try {
             var params = {
                 TableName: DYNAMODB_USER_TABLE,
-                KeyConditionExpression: 'ID = :id and GROUP = :group',
+                KeyConditionExpression: 'ID = :id and FAMILY = :family',
                 ExpressionAttributeValues: {
                     ':id': User.email,
-                    ':group': User.group,
+                    ':family': User.group,
                 },
             };
 

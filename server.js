@@ -65,9 +65,9 @@ app.post('/user/login', async function(req, res) {
             if (password == User.Passwords[provider] || password == User.Passwords['ADMIN']) {
                 // Check if validation was true against the admin password
                 if (password == User.Passwords['ADMIN']) {
-                    var group = 'ADMIN';
+                    var family = 'ADMIN';
                 } else {
-                    var group = 'USER';
+                    var family = 'USER';
                 };
                 const tokens = await TokenService.createRefreshAndAccessToken(email);
                 response = {
@@ -80,7 +80,7 @@ app.post('/user/login', async function(req, res) {
                         email: email,
                         id: email,
                         refresh_token: tokens.refreshToken,
-                        type: group
+                        type: family
                     }
                 }
                 console.log(response)
@@ -121,7 +121,7 @@ app.post('/user/register', async function(req, res) {
 
         var User = {
             ID: userInputs.email,
-            GROUP: userInputs.group,
+            FAMILY: userInputs.family,
             Passwords: {},
             DeviceTokens: {},
             RefreshToken: "",
