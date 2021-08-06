@@ -82,7 +82,10 @@ app.post('/user/login', async function(req, res) {
                         email: email,
                         id: email,
                         refresh_token: tokens.refreshToken,
-                        type: family
+                        type: family,
+                        settings: User.Settings,
+                        states: User.States,
+                        plan: User.Plan,
                     }
                 }
             } else {                
