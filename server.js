@@ -82,7 +82,10 @@ app.post('/user/login', async function(req, res) {
                         email: email,
                         id: email,
                         refresh_token: tokens.refreshToken,
-                        type: family
+                        type: family,
+                        settings: User.Settings,
+                        states: User.States,
+                        plan: User.Plan,
                     }
                 }
             } else {                
@@ -159,7 +162,7 @@ app.post('/user/register', async function(req, res) {
                     email: userInputs.email,
                     id: userInputs.email,
                     refresh_token: tokens.refreshToken,
-                    type: userInputs.group,
+                    type: userInputs.family,
                 }
             }
 
