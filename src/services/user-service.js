@@ -14,10 +14,12 @@ if (stage) {
     // var USER_API = "https://user-"+stage.toLowerCase()+".ourkollektiv.com";
     // var USER_API = "http://localhost:3001";
     var DYNAMODB_USER_TABLE = stage+"-User";
+    var DYNAMODB_USERPROFILE_TABLE = stage+"-UserProfile";
 } else { // default to staging environment
     // var USER_API = "https://user-staging.ourkollektiv.com";
     // var USER_API = "http://localhost:3001";
     var DYNAMODB_USER_TABLE = "Staging-User";
+    var DYNAMODB_USERPROFILE_TABLE = "Staging-UserProfile";
 }
 
 
@@ -89,6 +91,33 @@ class UserService {
                 statusCode: 500,
                 message: "Error occurred while fetching user from database",
             } 
+
+        };
+
+    }
+
+    // Register user in dynamodb database
+    async updateProfile(Profile) {
+            
+        try {
+
+            var params = {
+                TableName: DYNAMODB_USERPROFILE_TABLE,
+                Item: Profile
+            };
+            // Write plan data item to TrainingPlan table
+            await dynamoDB.put(params).promise();
+            
+            return {
+                success: true,
+            }
+
+        } catch(err) {
+            
+            console.log(err)
+            return {
+                success: false,
+            }
 
         };
 
