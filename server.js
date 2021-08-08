@@ -190,7 +190,7 @@ app.post('/user/profile/update', verifytoken, async function(req, res) {
       
         const UserService = container.resolve('UserService');
         
-        resp = await UserService.updateProfile(req.body)
+        response = await UserService.updateProfile(req.body)
         
         res.status(response.statusCode).send(response)
 
