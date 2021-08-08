@@ -200,6 +200,32 @@ app.post('/user/profile/update', verifytoken, async function(req, res) {
 
 });
 
+// Update users entire profile (e.g. save onboarding)
+app.post('/user/state/onboarding', verifytoken, async function(req, res) {
+    console.log('Onboarding state update request received')
+    try {
+        // NEED THE FOLLOWING TO BE IN REQUEST BODY
+        // - UserID
+        // - State
+        /* VERIFY BELOW FIELDS ARE PRESENT
+        var userInputs = {
+            'UserID': req.body.id,
+            'State': req.body.state,
+        }
+        */
+      
+        const UserService = container.resolve('UserService');
+        
+        response = await UserService.updateOnboardingState(req.body)
+        
+        res.status(response.statusCode).send(response)
+
+    } catch(err) {
+        res.status(500).send(err)
+    }
+
+});
+
 
 // Fetch foods endpoint
 app.get('/foods/fetch', verifytoken, function(req, res) {

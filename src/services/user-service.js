@@ -96,7 +96,7 @@ class UserService {
 
     }
 
-    // Register user in dynamodb database
+    // Update users profile data in database
     async updateProfile(Profile) {
             
         try {
@@ -105,11 +105,12 @@ class UserService {
                 TableName: DYNAMODB_USERPROFILE_TABLE,
                 Item: Profile
             };
-            // Write plan data item to TrainingPlan table
+            
             await dynamoDB.put(params).promise();
             
             return {
                 success: true,
+                statusCode: 200,
             }
 
         } catch(err) {
@@ -117,10 +118,50 @@ class UserService {
             console.log(err)
             return {
                 success: false,
+                statusCode: 500,
             }
 
         };
 
+    }
+
+    // Update users onboarding state in the database
+    async updateOnboardingState(data) {
+            
+        try {
+
+            var params = {
+                TableName: DYNAMODB_USER_TABLE,
+                Key: {
+                    'ID': data['id'],
+                    'FAMILY': 'USER',
+                },
+                UpdateExpression: "set States.Onboarded = :value",
+                ExpressionAttributeValues: {
+                    ":value": data['state'],
+                },
+                ReturnValues:"UPDATED_NEW"
+            };
+
+            var resp = await dynamoDB.update(params).promise();
+
+            return {
+                success: true,
+                statusCode: 200,
+            }
+
+        } catch(err) {
+            
+            console.log(err)
+            return {
+                success: false,
+                statusCode: 500,
+            }
+
+        };
+
+
+        
     }
 
 }
