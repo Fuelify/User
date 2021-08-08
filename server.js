@@ -176,6 +176,30 @@ app.post('/user/register', async function(req, res) {
 
 });
 
+// Update users entire profile (e.g. save onboarding)
+app.post('/user/profile/update', verifytoken, async function(req, res) {
+    console.log('Profile update request received')
+    try {
+        // NEED THE FOLLOWING TO BE IN REQUEST BODY
+        // - UserID
+        /* VERIFY BELOW FIELDS ARE PRESENT
+        var userInputs = {
+            'UserID': req.body.UserID,
+        }
+        */
+      
+        const UserService = container.resolve('UserService');
+        
+        resp = await UserService.updateProfile(req.body)
+        
+        res.status(response.statusCode).send(response)
+
+    } catch(err) {
+        res.status(500).send(err)
+    }
+
+});
+
 
 // Fetch foods endpoint
 app.get('/foods/fetch', verifytoken, function(req, res) {
