@@ -1,4 +1,4 @@
-var express = require('express');
+/*var express = require('express');
 const { v4: uuidv4 } = require('uuid');
 
 process.env.APP_ACCESS_SECRET = 'asdhjahsd77123';
@@ -10,7 +10,7 @@ setup();
 var app = express();
 var router = express.Router();
 
-const verifytoken = require('./src/middleware/verify-token');
+const verifytoken = require('./middleware/verify-token');
 
 var path = require('path');
 var publicDir = path.join(__dirname,'public');
@@ -32,7 +32,7 @@ app.post('/', function(req, res) {
 });
 
 // Login user in system, return token
-app.post('/user/login', async function(req, res) {
+app.post('/api/v1/user/login', async function(req, res) {
     console.log('Login request received')
     try {
         // NEW THE FOLLOWING TO BE IN REQUEST BODY
@@ -40,31 +40,30 @@ app.post('/user/login', async function(req, res) {
         // - Password
         // - Group
         // - Provider
-        /* VERIFY BELOW FIELDS ARE PRESENT
-        var userInputs = {
-            'email': req.body.email,
-            'password': req.body.password,
-            'group': req.body.group,
-            'provider': req.body.provider,
-        }
-        */
+        // VERIFY BELOW FIELDS ARE PRESENT
+        //var userInputs = {
+        //    'email': req.body.email,
+        //    'password': req.body.password,
+        //    'group': req.body.group,
+        //    'provider': req.body.provider,
+        //}
       
-        const TokenService = container.resolve('TokenService');
-        const UserService = container.resolve('UserService');
+        const TokenService = container.cradle.tokenService;
+        const userService = container.cradle.userService;
         
-        resp = await UserService.getUser(req.body)
+        const resp = await UserService.getUser(req.body.email)
         
         // Check if the user was successfully fetched from database
         var response;
         if (resp.success) {
-            var User = resp.user;
+            const user = resp.user;
             var email = req.body.email;
             var provider = req.body.provider;
             var password = req.body.password;
             // Validate passwords match either the users provider password or the admin provider password
-            if (password == User.Passwords[provider] || password == User.Passwords['ADMIN']) {
+            if (password == user.Passwords[provider] || password == user.Passwords['ADMIN']) {
                 // Check if validation was true against the admin password
-                if (password == User.Passwords['ADMIN']) {
+                if (password == user.Passwords['ADMIN']) {
                     var family = 'ADMIN';
                     var tokenEmail = email+'-ADMIN';
                 } else {
@@ -74,20 +73,21 @@ app.post('/user/login', async function(req, res) {
                 const tokens = await TokenService.createRefreshAndAccessToken(tokenEmail);
                 response = {
                     statusCode: 200,
-                    success: true,
-                    token: tokens.accessToken,
-                    message: "User successfully logged in",
+                    status: "success",
                     data: {
                         access_token: tokens.accessToken,
                         email: email,
                         id: email,
                         refresh_token: tokens.refreshToken,
                         type: family,
-                        settings: User.Settings,
-                        states: User.States,
-                        plan: User.Plan,
-                    }
+                        settings: user.Settings,
+                        states: user.States,
+                        plan: user.Plan,
+                    },
+                    message: "User successfully logged in",
+                    timestamp: Date.now()
                 }
+                
             } else {                
                 response = {
                     statusCode: 401,
@@ -182,11 +182,10 @@ app.post('/user/profile/update', verifytoken, async function(req, res) {
     try {
         // NEED THE FOLLOWING TO BE IN REQUEST BODY
         // - UserID
-        /* VERIFY BELOW FIELDS ARE PRESENT
-        var userInputs = {
-            'UserID': req.body.UserID,
-        }
-        */
+        // VERIFY BELOW FIELDS ARE PRESENT
+        //var userInputs = {
+        //    'UserID': req.body.UserID,
+        //}
       
         const UserService = container.resolve('UserService');
         
@@ -207,12 +206,11 @@ app.post('/user/state/onboarding', verifytoken, async function(req, res) {
         // NEED THE FOLLOWING TO BE IN REQUEST BODY
         // - UserID
         // - State
-        /* VERIFY BELOW FIELDS ARE PRESENT
-        var userInputs = {
-            'UserID': req.body.id,
-            'State': req.body.state,
-        }
-        */
+        // VERIFY BELOW FIELDS ARE PRESENT
+        //var userInputs = {
+        //    'UserID': req.body.id,
+        //    'State': req.body.state,
+        //}
       
         const UserService = container.resolve('UserService');
         
@@ -228,21 +226,14 @@ app.post('/user/state/onboarding', verifytoken, async function(req, res) {
 
 
 // Fetch foods endpoint
-app.get('/foods/fetch', verifytoken, function(req, res) {
+app.get('/user/fetch', verifytoken, function(req, res) {
     
     // Access the provided 'page' and 'limt' query parameters
     let limit = req.query.limit;
 
     var foods = [
         {
-            name: 'Lauren Turner',
-            designation: 'Content Writer',
-            userFavorites: 4,
-            bio:
-                'Psychology, science, and art are what helps me to learn the outside world and myself.',
-            age: 24,
-            imgUrl: 'assets/Food1.jpg',
-            location: 'North London'
+            title: 'Recipe 1',
         },
         {
             name: 'Lori Perez',
@@ -300,6 +291,62 @@ app.get('/foods/fetch', verifytoken, function(req, res) {
     res.status(200).send({"message": "Returning another "+limit.toString()+" food items.", "foods": foods });
 });
 
+// Fetch user meal plan between provided dates
+app.get('/api/v1/plan', function(req, res) {
+
+    console.log(`Request for meal plan received for dates between: ${req.query.start} and ${req.query.end}`)
+    
+    // Function to generate a random string
+    function generateRandomString() {
+        return Math.random().toString(36).substring(7);
+    }
+    
+    // Function to generate a random meal object
+    function generateRandomMeal(currentDate) {
+        return {
+            title: "Meal " + generateRandomString(),
+            id: generateRandomString(),
+            date: currentDate,
+            description: "Description for Meal " + generateRandomString()
+        };
+    }
+    
+    // Function to generate a random calendar map
+    function generateRandomCalendarMap(startDate, endDate) {
+        const calendarMap = {}
+        const currentDate = new Date(startDate);
+    
+        while (currentDate <= endDate) {
+            const meals = [];
+            const numMeals = Math.floor(Math.random() * 5) + 1; // Generate a random number of meals (1-5)
+        
+            const dateKey = currentDate.toISOString().split("T")[0]; // Get the date in "YYYY-MM-DD" format
+
+            for (let i = 0; i < numMeals; i++) {
+                meals.push(generateRandomMeal(dateKey)); // Generate a random meal object and add it to the meals array
+            }
+        
+            calendarMap[dateKey] =meals; // Add the meals array to the calendar map with the date as the key
+        
+            currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
+        }
+        
+        return calendarMap;
+    }
+
+    const startDate = new Date(req.query.start);
+    const endDate = new Date(req.query.end);
+
+    var mealPlan = generateRandomCalendarMap(startDate, endDate);
+    
+    res.status(200).send({
+        "statusCode": 200,
+        "status": "success",
+        "message": "Meal plan fetched successfully",
+        "data": mealPlan,
+        "timestamp": Date.now()
+    });
+});
 
 
 
@@ -310,3 +357,4 @@ app.get('/tokentest', verifytoken, function(req, res) {
 var port = process.env.PORT || 3000;
 app.listen(port);
 module.exports = app;
+*/

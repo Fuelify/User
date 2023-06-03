@@ -14,6 +14,9 @@ phases:
     commands:
       # Discover and run unit tests in the 'tests' directory
       - npm test
+  build:
+    commands:
+      - npm run build
   post_build:
     commands:
       # Remove existing node_modules to clear dev dependencies
@@ -29,6 +32,11 @@ phases:
       - sed -i.bak 's/\$PARTITION\$/'${PARTITION}'/g;s/\$AWS_REGION\$/'${AWS_REGION}'/g;s/\$ACCOUNT_ID\$/'${ACCOUNT_ID}'/g;s/\$PROJECT_ID\$/'${PROJECT_ID}'/g' template-configuration.json
 artifacts:
   files:
+    - '**/*'
     - template-export.yml
     - template-configuration.json
-
+  exclude-paths:
+    - test
+    - addhoc-scripts
+    - buildspec.xml
+    - template.yml
