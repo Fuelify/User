@@ -10,6 +10,7 @@ function setup(): void {
     './src/services/**/*.ts',
     './src/controllers/**/*.ts',
     './src/repositories/**/*.ts',
+    './src/utils/**/*.ts',
     './src/errors/**/*.ts'
   ], {
     formatName: 'camelCase',
