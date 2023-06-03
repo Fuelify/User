@@ -1,0 +1,13 @@
+{
+    "RequestResponse": {
+      "description": "The response returned from a API request.",
+      "type": "object",
+      "required": [ "Result"],
+      "properties": {          
+        "Result": {
+          "description": "The Result object of the request request.",
+          "type": "object"
+        }
+      }
+    }
+}
