@@ -1,15 +1,26 @@
 import { Response } from 'express';
 import ResponseModel from '../models/response-model';
+import UserModel from '../models/user-model';
+
+import ConfigurationService from './configuration-service';
+import LoggingService from './logging-service';
 
 interface Dependencies {
-  responseModel: typeof ResponseModel;
+  configurationService: ConfigurationService;
+  loggingService: LoggingService;
 }
 
-interface User {
-  ID: string;
-}
+class PlanService {
+  configurationService: ConfigurationService;
+  loggingService: LoggingService;
 
-export default function ({ responseModel }: Dependencies) {
+  constructor({ configurationService, loggingService }: Dependencies) {
+    this.configurationService = configurationService;
+    this.loggingService = loggingService;
+
+  }
+
+
   async function getPlan(user: User, startDate: string, endDate: string) {
     try {
       console.log(`Request for meal plan received for ${user.ID} dates between: ${startDate} and ${endDate}`);
@@ -76,3 +87,5 @@ export default function ({ responseModel }: Dependencies) {
     getPlan
   };
 }
+
+export default PlanService;
