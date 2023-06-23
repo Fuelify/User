@@ -7,7 +7,7 @@ import { container } from '../dependency-constructor';
 // @ts-ignore
 const requestErrors = container.cradle.requestErrors;
 const planController  = container.cradle.planController;
-//const verifyToken  = container.cradle.verifyToken;
+const {verifyToken}  = container.cradle.authorization;
 
 const router = Router();
 
@@ -17,7 +17,6 @@ const router = Router();
  *      summary: Get meal plan.
  *      description: Get a users meal plan between two dates.
  * */
-router.get('/', planController.getPlan);
-//router.get('/', verifyToken, planController.getPlan);
+router.get('/', verifyToken, planController.getPlan);
 
 export default router;
