@@ -76,9 +76,6 @@ class PlanService {
     }
   }
 
-  return {
-    getPlan
-  };
 }
 
 export default PlanService;
