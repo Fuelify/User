@@ -21,9 +21,9 @@ class PlanService {
   }
 
 
-  async function getPlan(user: User, startDate: string, endDate: string) {
+  async getPlan(user: UserModel, startDate: string, endDate: string) {
     try {
-      console.log(`Request for meal plan received for ${user.ID} dates between: ${startDate} and ${endDate}`);
+      console.log(`Request for meal plan received for ${user.id} dates between: ${startDate} and ${endDate}`);
 
       // Function to generate a random string
       function generateRandomString(): string {
