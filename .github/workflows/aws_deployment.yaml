@@ -22,8 +22,8 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies for both backend and frontend
+        run: npm install, cd src/client, npm install, cd ../..
 
       - name: Build TypeScript
         run: npm run build
