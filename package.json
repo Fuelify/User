@@ -4,7 +4,12 @@
     "version": "0.0.1",
     "private": true,
     "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.350.0",
+        "@aws-sdk/lib-dynamodb": "^3.350.0",
         "@elastic/ecs-winston-format": "^1.3.1",
+        "@types/axios": "^0.14.0",
+        "@types/bcrypt": "^5.0.0",
+        "@types/bcryptjs": "^2.4.2",
         "@types/cors": "^2.8.13",
         "@types/dotenv": "^8.2.0",
         "@types/elastic-apm-node": "^2.7.0",
@@ -16,6 +21,8 @@
         "awilix": "^4.3.4",
         "aws": "^0.0.3-2",
         "aws-sdk": "^2.936.0",
+        "bcrypt": "^5.1.0",
+        "bcryptjs": "^2.4.3",
         "cors": "^2.8.5",
         "dotenv": "^16.1.3",
         "elastic-apm-node": "^3.46.0",
@@ -40,9 +47,11 @@
         "unit.js": "^2.1.1"
     },
     "scripts": {
-        "start": "node build/server.js",
+        "start": "node dist/server.js",
         "start:dev": "npx nodemon",
-        "build": "rm -rf ./build && tsc && copyfiles -s -u 1 \"./src/**/*.json\" \"./src/**/*.svg\" \"./src/**/*.sass\" build/ && copyfiles -s -u 2 \"./src/public/**/*\" build/public/",
-        "test": "mocha --recursive tests --exit"
+        "build": "rm -rf ./dist && cd ./src/client && npm run build && cd ../.. && tsc && copyfiles -s -u 1 \"./src/model/**/*.json\" \"./src/img/**/*.svg\" \"./src/sass/**/*.sass\" dist/ && copyfiles -s -u 3 \"./src/client/dist/**/*\" dist/client/dist/",
+        "test": "mocha --recursive tests --exit",
+        "sass": "node-sass --watch ./src/sass -o ./src/client/public/css",
+        "scss": "node-sass --watch ./src/scss -o ./src/client/public/css"
     }
 }
