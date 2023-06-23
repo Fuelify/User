@@ -5,7 +5,7 @@ class ResponseModel {
     message: string;
     timestamp: number;
   
-    constructor(statusCode: number, status: string, data: object, message: string) {
+    constructor(statusCode: number, status: string, message: string = '', data: object = {}) {
       this.statusCode = statusCode;
       this.status = status;
       this.data = data;

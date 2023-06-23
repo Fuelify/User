@@ -1,44 +1,41 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import ResponseModel from '../models/response-model';
 // @ts-ignore
-import { userService, requestErrors } from container.cradle;
+import { userService, requestErrors, responseModel } from container.cradle;
 
 interface Dependencies {
   userService: userService;
   requestErrors: requestErrors;
+  responseModel: ResponseModel;
 }
 
-interface Dependencies {
-  creatorsService: userService;
-  requestErrors: requestErrors;
-}
-
-module.exports = function({ userService, requestErrors }: Dependencies) {
+module.exports = function({ userService, requestErrors, responseModel }: Dependencies) {
     
   
-  async function login(req: any, res: Response, next: NextFunction) {
+  async function login(req: any, res: any, next: NextFunction) {
     try {
-      const userInput = req.body;
-
-      const result = await userService.login({ email: userInput.email, password: userInput.password });
-      if(result.success === true) {
-        res.send(result.tokens);
+      const response: ResponseModel = await userService.login(req.body.email, req.body.password, req.body.provider);
+      console.log(response)
+      if(response.statusCode === 200) {
+        res.status(response.statusCode).send(response);
       } else {
-        switch(result.status) { // Validating Payment
+        switch(response.statusCode) {
           case 400 :
-            return next(requestErrors.badRequest400(result.message));
+            return next(requestErrors.badRequest400(response.message));
           case 401 :
-            return next(requestErrors.unauthorized401(result.message));
+            return next(requestErrors.unauthorized401(response.message));
           case 403 :
-            return next(requestErrors.forbidden403(result.message));
+            return next(requestErrors.forbidden403(response.message));
           case 404 :
-            return next(requestErrors.notFound404(result.message));
+            return next(requestErrors.notFound404(response.message));
           case 500 :
-            return next(requestErrors.internalServerError500(result.message));
+            return next(requestErrors.internalServerError500(response.message));
           default:
             return next(requestErrors.internalServerError500('Unhandled Error'));
         }
       }
     } catch (err) {
+      console.log(err)
       return next(requestErrors.internalServerError500('Unhandled error at login.'));
     }
   }

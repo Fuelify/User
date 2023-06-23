@@ -5,7 +5,7 @@ import { container } from '../dependency-constructor';
 // @ts-ignore
 const requestErrors = container.cradle.requestErrors;
 const userController  = container.cradle.userController;
-//const userController = container.cradle.userController;
+const { verifyApiToken } = container.cradle.authorization
 
 const router = Router();
 /**
@@ -63,7 +63,7 @@ const router = Router();
  *      tags:
  *      - user
  */
-router.post('/login', userController.login);
+router.post('/login', verifyApiToken, userController.login);
 //router.post('/login', verifyApiToken, userController.login);
 
 export default router;
