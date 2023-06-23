@@ -68,17 +68,10 @@ class PlanService {
 
       const mealPlan = generateRandomCalendarMap(start, end);
 
-      const response = new responseModel(
-        200,
-        "success",
-        mealPlan,
-        "Meal plan fetched successfully"
-      );
-
-      return response
+      return new ResponseModel(200,"success","Meal plan fetched successfully",mealPlan);
 
     } catch (err) {
-      // logger.log(err);
+      this.loggingService.error('Retrieving user meal plan from database', err);
       throw err;
     }
   }
