@@ -64,6 +64,5 @@ const router = Router();
  *      - user
  */
 router.post('/login', verifyApiToken, userController.login);
-//router.post('/login', verifyApiToken, userController.login);
 
 export default router;

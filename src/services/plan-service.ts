@@ -1,18 +1,29 @@
 import { Response } from 'express';
 import ResponseModel from '../models/response-model';
+import UserModel from '../models/user-model';
+
+import ConfigurationService from './configuration-service';
+import LoggingService from './logging-service';
 
 interface Dependencies {
-  responseModel: typeof ResponseModel;
+  configurationService: ConfigurationService;
+  loggingService: LoggingService;
 }
 
-interface User {
-  ID: string;
-}
+class PlanService {
+  configurationService: ConfigurationService;
+  loggingService: LoggingService;
 
-export default function ({ responseModel }: Dependencies) {
-  async function getPlan(user: User, startDate: string, endDate: string) {
+  constructor({ configurationService, loggingService }: Dependencies) {
+    this.configurationService = configurationService;
+    this.loggingService = loggingService;
+
+  }
+
+
+  async getPlan(user: UserModel, startDate: string, endDate: string) {
     try {
-      console.log(`Request for meal plan received for ${user.ID} dates between: ${startDate} and ${endDate}`);
+      console.log(`Request for meal plan received for ${user.id} dates between: ${startDate} and ${endDate}`);
 
       // Function to generate a random string
       function generateRandomString(): string {
@@ -57,17 +68,10 @@ export default function ({ responseModel }: Dependencies) {
 
       const mealPlan = generateRandomCalendarMap(start, end);
 
-      const response = new responseModel(
-        200,
-        "success",
-        mealPlan,
-        "Meal plan fetched successfully"
-      );
-
-      return response
+      return new ResponseModel(200,"success","Meal plan fetched successfully",mealPlan);
 
     } catch (err) {
-      // logger.log(err);
+      this.loggingService.error('Retrieving user meal plan from database', err);
       throw err;
     }
   }
@@ -76,3 +80,5 @@ export default function ({ responseModel }: Dependencies) {
     getPlan
   };
 }
+
+export default PlanService;
