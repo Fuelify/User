@@ -7,8 +7,30 @@ on:
       - staging
 
 jobs:
+  run-postman-tests:
+    name: Run Postman Collections
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    # Install Newman
+    - name: Install Newman
+      run: npm install -g newman
+
+    # Run the Postman collection
+    #- name: Execute Postman Collection
+    #  run: newman run path/to/your/collection.json
+
+    # Optionally, Run the Postman collection with environment variables
+    #- name: Execute Postman Collection with environment variables
+    #  run: newman run path/to/your/collection.json -e path/to/your/environment.json
+
   deploy-to-staging:
+    name: Deploy to Staging Elastic Beanstalk Environment
     if: github.ref == 'refs/heads/staging'
+    needs: run-postman-tests
     runs-on: ubuntu-latest
     env:
       ENVIRONMENT: Staging
