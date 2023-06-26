@@ -41,7 +41,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Zip and Uploda Build Artifact to S3 Bucket
+      - name: Verify dist contents
+        run: ls -al ./dist
+        
+      - name: Zip and Upload Build Artifact to S3 Bucket
         run: |
           zip -r artifact-${{ github.sha }}.zip ./dist
           aws s3 cp artifact-${{ github.sha }}.zip s3://$S3_BUCKET/${{ env.ENVIRONMENT }}/UserAPI/artifact-${{ github.sha }}.zip
