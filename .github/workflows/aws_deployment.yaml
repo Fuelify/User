@@ -40,9 +40,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+          
+      - name: List current directory contents
+        run: ls -al
 
-      - name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*'
+      - name: List dist directory contents
+        run: ls -al ./dist
 
       - name: Zip and Upload Build Artifact to S3 Bucket
         run: |
