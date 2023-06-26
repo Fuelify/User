@@ -1,4 +1,4 @@
-name: Deploy to Elastic Beanstalk with CloudFormation
+name: Deploy Application to Elastic Beanstalk Environment
 
 on:
   push:
