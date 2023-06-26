@@ -25,9 +25,9 @@ jobs:
 
       - name: Install dependencies for both backend and frontend
         run: |
-          npm install --production &&
+          npm install &&
           cd src/client &&
-          npm install --production &&
+          npm install &&
           cd ../..
 
       - name: Compile TypeScript and Build Application
