@@ -43,7 +43,7 @@ jobs:
 
       - name: Zip and Upload Build Artifact to S3 Bucket
         run: |
-          zip -j -r artifact-${{ github.sha }}.zip dist/* package.json
+          zip -r artifact-${{ github.sha }}.zip dist/* package.json
           aws s3 cp artifact-${{ github.sha }}.zip s3://$S3_BUCKET/${{ env.ENVIRONMENT }}/UserAPI/artifact-${{ github.sha }}.zip
 
       - name: Deploy to Elastic Beanstalk
