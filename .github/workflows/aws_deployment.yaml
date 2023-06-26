@@ -41,16 +41,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: List current directory contents
-        run: ls -al
-
-      - name: List dist directory contents
-        run: ls -al ./dist
-
       - name: Zip and Upload Build Artifact to S3 Bucket
         run: |
-          cd dist
-          zip -r artifact-${{ github.sha }}.zip
+          zip -r artifact-${{ github.sha }}.zip dist/*
           aws s3 cp artifact-${{ github.sha }}.zip s3://$S3_BUCKET/${{ env.ENVIRONMENT }}/UserAPI/artifact-${{ github.sha }}.zip
 
       - name: Deploy to Elastic Beanstalk
