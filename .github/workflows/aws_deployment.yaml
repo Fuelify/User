@@ -40,7 +40,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-          
+
       - name: List current directory contents
         run: ls -al
 
@@ -49,7 +49,7 @@ jobs:
 
       - name: Zip and Upload Build Artifact to S3 Bucket
         run: |
-          cd ./dist
+          cd dist
           zip -r artifact-${{ github.sha }}.zip
           aws s3 cp artifact-${{ github.sha }}.zip s3://$S3_BUCKET/${{ env.ENVIRONMENT }}/UserAPI/artifact-${{ github.sha }}.zip
 
