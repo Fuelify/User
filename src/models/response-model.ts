@@ -1,7 +1,7 @@
 class ResponseModel {
     statusCode: number;
     status: string;
-    data: object;
+    data: any;
     message: string;
     timestamp: number;
   
