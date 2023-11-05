@@ -16,9 +16,9 @@ class EncryptionService {
       this.loggingService = loggingService;
     }
 
-    generateSalt(iterations: number) {
+    generateSalt(iterations: number = 10): Promise<string> {
         //return bcryptGenSalt(iterations);
-        return bcryptGenSalt();
+        return bcryptGenSalt() as Promise<string>;
     }
 
     generateHash(password: string, salt: string | number) {
