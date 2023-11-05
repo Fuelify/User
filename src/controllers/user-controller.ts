@@ -9,150 +9,112 @@ interface Dependencies {
   responseModel: ResponseModel;
 }
 
+// TODO: Add validation, migrate to class
 module.exports = function({ userService, requestErrors, responseModel }: Dependencies) {
     
   
-  async function login(req: any, res: any, next: NextFunction) {
+  async function loginUser(req: any, res: any, next: NextFunction) {
     try {
-      const response: ResponseModel = await userService.login(req.body.email, req.body.password, req.body.provider);
-      console.log(response)
-      if(response.statusCode === 200) {
-        res.status(response.statusCode).send(response);
-      } else {
-        switch(response.statusCode) {
-          case 400 :
-            return next(requestErrors.badRequest400(response.message));
-          case 401 :
-            return next(requestErrors.unauthorized401(response.message));
-          case 403 :
-            return next(requestErrors.forbidden403(response.message));
-          case 404 :
-            return next(requestErrors.notFound404(response.message));
-          case 500 :
-            return next(requestErrors.internalServerError500(response.message));
-          default:
-            return next(requestErrors.internalServerError500('Unhandled Error'));
-        }
-      }
+      const response: ResponseModel = await userService.loginUser(req.body.email, req.body.password, req.body.provider);
+      res.status(response.statusCode).send(response);
     } catch (err) {
       console.log(err)
       return next(requestErrors.internalServerError500('Unhandled error at login.'));
     }
   }
 
-  /*async function registerCreator(req: Request, res: Response, next: NextFunction) {
-    const userInput = req.body;
-    
+  async function createUser(req: any, res: any, next: NextFunction) {
     try {
+      const userInput = req.body;
+      // Enforce all lowercase emails
       userInput.email = userInput.email.toLowerCase();
 
-      // Validate user input
-      const result = await validator.validate(NewCreator, userInput);
+      //TODO Validate user input
+      /*const result = await validator.validate(NewCreator, userInput);
       if(result !== true) {
         const message = 'Invalid data specified: ' + ((result[0]) ? result[0].message : 'undefined');
         logger.warn(message, result);
         return next(requestErrors.badRequest400(message));
-      }
+      }*/
 
-      const user = await creatorsService.createCreator(userInput);
-
-      if(!returnError.hasError(user)) {
-        logger.info('Register user success. User: ' + user.email);
-        // Follow regular feeds
-        await socialService.batchFollow(user, user.KollektivId);
-        // Follow notification feeds
-        await socialService.batchFollow(user, user.KollektivId, 'notification');
-        return res.send({ user, success: true });
-      }
+      const response: ResponseModel = await userService.createUser(userInput.email, userInput.password, userInput.family, userInput.provider);
+      res.status(response.statusCode).send(response);
+    } catch(err: any) {
       const message = 'Unable to create user.';
-      logger.error(message + ' User: ' + (userInput.email || ''));
-      return next(requestErrors.badRequest400(message));
-    } catch(err) {
-      const message = 'Unable to create user.';
-      logger.error(message + ' User: ' + (userInput.email || ''), err);
-      return next(requestErrors.badRequest400(message));
+      console.log(message + ' User: ' + (req.body.email || ''), err.toString());
+      return next(requestErrors.internalServerError500('Unhandled error at user creation.'));
     }
   }
-  
-  async function updateCreatorProfile(req, res, next) {
+
+  async function refreshTokens(req: any, res: any, next: NextFunction) {
     try {
-      const userInput = req.body;
-      userInput.id = req.user.id;
-
-      // Validate user input
-  //    const output = {};
-  //    const validator = container.resolve('validator');
-  //    if(! await validator.ValidateNewCreator(user_input, output)) {
-  //      const logmessage1 = 'Invalid data. Unable to create user.';
-  //        logger.warn({
-  //          userid: user_input.email,
-  //          obj_function: 'register', 
-  //          file: 'user', 
-  //          message: logmessage1,
-  //          err: output.errors});
-  //      return next(requestErrors.badRequest400(logmessage1));
-  //    }
-
-      const user = await creatorsService.updateCreatorProfile(userInput);
-
-      if(!returnError.hasError(user)) {
-        logger.info('Update creator profile success. User: ' + userInput.id);
-        res.send({user, success: true});
-      }
-
-      const message = 'Unable to update user profile.';
-      logger.warn(message + ' User: ' + userInput.id, user);
-      return next(requestErrors.badRequest400(message));
-    } catch(err) {
-      const message = 'Unable to update user profile.';
-      logger.error(message + ' User: ' + userInput.id, err);
-      return next(requestErrors.internalServerError500(message));
-    }
-  }
-  
-  async function getCreator(req, res, next) {
-    try {
-      const user = await creatorsService.getCreator(req.user.id);
-      res.send(user);
+      const response: ResponseModel = await userService.refreshTokens(req.body.refreshToken);
+      res.status(response.statusCode).send(response);
     } catch (err) {
-      const message = 'Unhandled error at get creator details.';
-      logger.error(message + ' User: ' + (req.user === undefined ? '' : req.user.id));
-      return next(requestErrors.internalServerError500(message));
-    }
+      return next(requestErrors.internalServerError500('Unhandled error at token refresh.'));
+    } 
   }
-  
-  async function refreshToken(req, res, next) {
+
+  async function getUser(req: any, res: any, next: NextFunction) {
     try {
-      const userInput = req.body;
-
-      // Validate the refreshtoken
-      const payload = await tokenService.verifyRefreshToken(userInput.refreshtoken);
-      if(payload !== null) {
-        const jwtUser = payload.payload;
-
-        // Getuser
-        const user = await creatorsService.getCreator(jwtUser.id);
-
-        // Create new tokens
-        const tokens = await tokenService.createRefreshTokenAndAccessToken(user);
-        if(tokens) {
-          res.send(tokens);
-        }
-
-        const message = 'Unable to create new token!';
-        logger.error(message + ' User: ' + (req.user === undefined ? '' : req.user.id));
-        return next(requestErrors.badRequest400(message));
-      } else {
-        const message = 'Missing payload in refresh token.';
-        logger.error(message + ' User: ' + (req.user === undefined ? '' : req.user.id));
-        return next(requestErrors.unauthorized401(message));
-      }
+      //const response: ResponseModel = await userService.getUser(req.user.id);
+      //User already fetched in auth middleware
+      const response: ResponseModel = new ResponseModel(200,'success','User fetched successfully',req.user.toSanitizedJson());
+      res.status(response.statusCode).send(response);
     } catch (err) {
-      const message = 'Refresh token failed.';
-      logger.error(message + ' User: ' + (req.user === undefined ? '' : req.user.id), err);
-      return next(requestErrors.internalServerError500(message));
-    }
+      return next(requestErrors.internalServerError500('Unhandled error while retrieving user.'));
+    } 
   }
+
+  async function logoutUser(req: any, res: any, next: NextFunction) {
+    try {
+      const response: ResponseModel = await userService.logoutUser(req.user, req.header('Authorization').split(" ")[1]);
+      res.status(response.statusCode).send(response);
+    } catch (err) {
+      return next(requestErrors.internalServerError500('Unhandled error while logging user out.'));
+    } 
+  }
+
+  async function deleteUser(req: any, res: any, next: NextFunction) {
+    try {
+      const response: ResponseModel = await userService.deleteUser(req.user);
+      res.status(response.statusCode).send(response);
+    } catch (err) {
+      return next(requestErrors.internalServerError500('Unhandled error while deleting user.'));
+    } 
+  }
+
+  async function changePassword(req: any, res: any, next: NextFunction) {
+    try {
+      const response: ResponseModel = await userService.changePassword(req.user,req.body.oldPassword,req.body.newPassword);
+      res.status(response.statusCode).send(response);
+    } catch (err) {
+      return next(requestErrors.internalServerError500('Unhandled error while attempting to change user password.'));
+    } 
+  }
+
+  async function resetPassword(req: any, res: any, next: NextFunction) {
+    try {
+      const response: ResponseModel = await userService.resetPassword(req.body.email,req.body.password);
+      res.status(response.statusCode).send(response);
+    } catch (err) {
+      return next(requestErrors.internalServerError500('Unhandled error while attempting to reset user password.'));
+    } 
+  }
+
+  async function sendPasswordResetEmail(req: any, res: any, next: NextFunction) {
+    try {
+      const response: ResponseModel = await userService.sendPasswordResetEmail(req.body.email);
+      res.status(response.statusCode).send(response);
+    } catch (err) {
+      return next(requestErrors.internalServerError500('Unhandled error while attempting to send password reset email'));
+    } 
+  }
+
+  
+  
+  /*
+  
   
   async function updateProfileImage(req, res, next) {
     try {
@@ -333,18 +295,22 @@ module.exports = function({ userService, requestErrors, responseModel }: Depende
   }*/
   
   return {
-      login,
-      /*registerCreator,
-      updateCreatorProfile,
-      getCreator,
-      refreshToken,
+      loginUser,
+      createUser,
+      refreshTokens,
+      getUser,
+      logoutUser,
+      deleteUser,
+      changePassword,
+      resetPassword,
+      sendPasswordResetEmail,
+      /*
       updateProfileImage,
       getProfileImage,
       deleteProfileImage,
       updateEmail,
       updatePassword,
       resetPassword,
-      changeCreatorPassword,
       addAppNotificationToken,
       checkCreatorExists*/
   };
