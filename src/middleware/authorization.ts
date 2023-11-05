@@ -58,7 +58,7 @@ module.exports = function ({ loggingService, tokenService, userService, requestE
         }
     }
     
-    async function verifyToken(req: any, res: Response, next: NextFunction) {
+    async function verifyAccessToken(req: any, res: Response, next: NextFunction) {
         try {
 
           const authToken = req.header('Authorization');
@@ -140,7 +140,7 @@ module.exports = function ({ loggingService, tokenService, userService, requestE
     return {
         verifyAdminToken,
         verifyApiToken,
-        verifyToken,
+        verifyAccessToken,
         //allowScope,
         //allowOnlyTestUser,
         //enableTestSites
