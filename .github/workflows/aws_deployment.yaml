@@ -1,17 +1,40 @@
-name: Deploy to Elastic Beanstalk with CloudFormation
+name: Deploy Application to Elastic Beanstalk Environment
 
 on:
   push:
     branches:
-      #- production
+      - production
       - staging
 
 jobs:
+  run-postman-tests:
+    name: Run Postman Collections
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    # Install Newman
+    - name: Install Newman
+      run: npm install -g newman
+
+    # Run the Postman collection
+    #- name: Execute Postman Collection
+    #  run: newman run path/to/your/collection.json
+
+    # Optionally, Run the Postman collection with environment variables
+    #- name: Execute Postman Collection with environment variables
+    #  run: newman run path/to/your/collection.json -e path/to/your/environment.json
+
   deploy-to-staging:
+    name: Deploy to Staging Elastic Beanstalk Environment
     if: github.ref == 'refs/heads/staging'
+    needs: run-postman-tests
     runs-on: ubuntu-latest
     env:
-      ENVIRONMENT: staging
+      ENVIRONMENT: Staging
+      S3_BUCKET: fuelify-elasticbeanstalk-deployment-artifacts
 
     steps:
       - name: Checkout code
@@ -20,46 +43,75 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 18 # Change this if you need a specific Node.js version
+          node-version: 18
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build TypeScript
-        run: npm run build # Assumes you have a build script in your package.json
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build and Push Docker image to Amazon ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: Fuelify-ECR-Repository
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Install dependencies for both backend and frontend
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          npm install &&
+          cd src/client &&
+          npm install &&
+          cd ../..
+
+      - name: Compile TypeScript and Build Application
+        run: npm run build
 
       - name: Configure AWS credentials
+        id: aws-credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}  # Replace with your desired AWS region
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Zip and Upload Build Artifact to S3 Bucket
+        run: |
+          zip -r artifact-${{ github.sha }}.zip dist/* package.json
+          aws s3 cp artifact-${{ github.sha }}.zip s3://$S3_BUCKET/${{ env.ENVIRONMENT }}/UserAPI/artifact-${{ github.sha }}.zip
 
       - name: Deploy to Elastic Beanstalk
         run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name UserAPI \
+            --version-label ${{ github.sha }} \
+            --source-bundle S3Bucket=$S3_BUCKET,S3Key=${{ env.ENVIRONMENT }}/UserAPI/artifact-${{ github.sha }}.zip
           aws elasticbeanstalk update-environment \
             --application-name UserAPI \
-            --environment-name Production-UserAPI \
+            --environment-name ${{ env.ENVIRONMENT }}-UserAPI \
             --version-label ${{ github.sha }}
+
+      #- name: Notify Slack on Success
+      #  if: success()
+      #  env:
+      #    SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #  run: |
+      #    curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to Elastic Beanstalk succeeded!"}' $SLACK_WEBHOOK_URL
+
+      #- name: Notify Slack on Failure
+      #  if: failure()
+      #  env:
+      #    SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #  run: |
+      #    curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to Elastic Beanstalk failed!"}' $SLACK_WEBHOOK_URL
+
+      #- name: Get ECR registry URI
+      #  id: ecr
+      #  run: echo "::set-output name=registry::$(aws ecr describe-repositories --query 'repositories[0].repositoryUri' --output text)"
+
+      #- name: Build and Push Docker image to Amazon ECR
+      #  env:
+      #    ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+      #    ECR_REPOSITORY: fuelify-ecr-repository
+      #    IMAGE_TAG: ${{env.ENVIRONMENT}}.UserAPI.${{ github.sha }}
+      #  run: |
+      #    docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+      #    docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   deploy-to-production:
     if: github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     env:
-      ENVIRONMENT: production
+      ENVIRONMENT: Production
+      S3_BUCKET: fuelify-elasticbeanstalk-deployment-artifacts
 
     steps:
       - name: Checkout code
@@ -68,37 +120,51 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 18 # Change this if you need a specific Node.js version
+          node-version: 18
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build TypeScript
-        run: npm run build # Assumes you have a build script in your package.json
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build and Push Docker image to Amazon ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: Fuelify-ECR-Repository
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Install dependencies for both backend and frontend
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          npm install &&
+          cd src/client &&
+          npm install &&
+          cd ../..
+
+      - name: Compile TypeScript and Build Application
+        run: npm run build
 
       - name: Configure AWS credentials
+        id: aws-credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}  # Replace with your desired AWS region
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Zip and Uploda Build Artifact to S3 Bucket
+        run: |
+          zip -r artifact-${{ github.sha }}.zip ./dist
+          aws s3 cp artifact-${{ github.sha }}.zip s3://$S3_BUCKET/${{ env.ENVIRONMENT }}/UserAPI/artifact-${{ github.sha }}.zip
 
       - name: Deploy to Elastic Beanstalk
         run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name UserAPI \
+            --version-label ${{ github.sha }} \
+            --source-bundle S3Bucket=$S3_BUCKET,S3Key=${{ env.ENVIRONMENT }}/UserAPI/artifact-${{ github.sha }}.zip
           aws elasticbeanstalk update-environment \
             --application-name UserAPI \
-            --environment-name Staging-UserAPI \
+            --environment-name ${{ env.ENVIRONMENT }}-UserAPI \
             --version-label ${{ github.sha }}
+
+      #- name: Get ECR registry URI
+      #  id: ecr
+      #  run: echo "::set-output name=registry::$(aws ecr describe-repositories --query 'repositories[0].repositoryUri' --output text)"
+
+      #- name: Build and Push Docker image to Amazon ECR
+      #  env:
+      #    ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+      #    ECR_REPOSITORY: fuelify-ecr-repository
+      #    IMAGE_TAG: ${{env.ENVIRONMENT}}.UserAPI.${{ github.sha }}
+      #  run: |
+      #    docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+      #    docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

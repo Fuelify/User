@@ -3,6 +3,9 @@
     "description": "Fuelify User-API ExpressJS WebService",
     "version": "0.0.1",
     "private": true,
+    "engines" : { 
+        "node" : ">=18.0.0"
+    },
     "dependencies": {
         "@aws-sdk/client-dynamodb": "^3.350.0",
         "@aws-sdk/lib-dynamodb": "^3.350.0",
