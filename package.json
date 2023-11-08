@@ -56,7 +56,7 @@
     },
     "scripts": {
         "start": "node dist/server.js",
-        "start:dev": "npx nodemon",
+        "dev": "npx nodemon",
         "build": "rm -rf ./dist && cd ./src/client && npm run build && cd ../.. && tsc && copyfiles -s -u 1 \"./src/model/**/*.json\" \"./src/img/**/*.svg\" \"./src/sass/**/*.sass\" dist/ && copyfiles -s -u 3 \"./src/client/dist/**/*\" dist/client/dist/",
         "test": "mocha --recursive tests --exit",
         "sass": "node-sass --watch ./src/sass -o ./src/client/public/css",
