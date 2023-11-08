@@ -54,8 +54,8 @@ class UserRepository {
         const params = {
           TableName: this.configurationService.FUELIFY_USER_DYNAMODB_TABLENAME,
           Key: {
-            ID : user.id,
-            FAMILY: user.family
+            Id : user.id,
+            Family: user.family
           }
         };
 
@@ -77,13 +77,13 @@ class UserRepository {
             const params = {
                 IndexName: 'Login-Index',
                 TableName: this.configurationService.FUELIFY_USER_DYNAMODB_TABLENAME,
-                KeyConditionExpression: '#pk = :id and #sk = :family',
+                KeyConditionExpression: '#pk = :Id and #sk = :family',
                 ExpressionAttributeNames: {
                   '#pk': 'Email',
-                  '#sk': 'FAMILY',
+                  '#sk': 'Family',
                 },
                 ExpressionAttributeValues: {
-                  ':id': email,
+                  ':Id': email,
                   ':family': 'USER',
                 },
                 //Key: {
@@ -115,8 +115,8 @@ class UserRepository {
             const params: GetCommandInput = {
                 TableName: this.configurationService.FUELIFY_USER_DYNAMODB_TABLENAME,
                 Key: {
-                  'ID': userId,
-                  'FAMILY': family
+                  'Id': userId,
+                  'Family': family
                 }
             };
 
@@ -144,8 +144,8 @@ class UserRepository {
           const params: UpdateCommandInput = {
               TableName: this.configurationService.FUELIFY_USER_DYNAMODB_TABLENAME,
               Key: {
-                  'ID' : user.id,
-                  'FAMILY': user.family
+                  'Id' : user.id,
+                  'Family': user.family
               },
               UpdateExpression: "SET Passwords = :Passwords, Salt = :Salt",
               ExpressionAttributeValues: {
